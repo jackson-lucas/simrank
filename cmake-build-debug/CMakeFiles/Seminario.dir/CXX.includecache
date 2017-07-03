@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/jacksonlima/Documents/PAA/Seminario/Filme.h
+iostream
+-
+fstream
+-
+vector
+-
+
+/Users/jacksonlima/Documents/PAA/Seminario/main.cpp
+iostream
+-
+stdlib.h
+-
+vector
+-
+Filme.h
+/Users/jacksonlima/Documents/PAA/Seminario/Filme.h
+string
+-
+sstream
+-
+fstream
+-
+iterator
+-
+
