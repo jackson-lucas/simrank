@@ -6,6 +6,7 @@ using namespace std;
 
 class Filme {
   public:
+    int id;
     vector<int> vizinhos;
-    bool categories[19];
+    bool categorias[19];
 };
