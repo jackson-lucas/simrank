@@ -7,6 +7,7 @@
 #include <sstream>
 #include <fstream>
 #include <iterator>
+#include <assert.h>
 
 using namespace std;
 
@@ -35,12 +36,14 @@ vector<Filme> filmes;
 void readFile(string path) {
   ifstream myfile (path);
   string line;
+  int limite = 500;
+  int contador = 0;
 
   if (myfile.is_open()) {
-    while (getline (myfile, line)) {
+    while (getline (myfile, line) && contador < limite) {
       vector<string> data = split(line, '|');
       Filme filme;
-      filme.id = stoi(data[5]);
+      filme.id = stoi(data[0]);
       filme.categorias[1] = (0 != stoi(data[5]));
       filme.categorias[2] = (0 != stoi(data[6]));
       filme.categorias[3] = (0 != stoi(data[7]));
@@ -59,7 +62,29 @@ void readFile(string path) {
       filme.categorias[16] = (0 != stoi(data[21]));
       filme.categorias[17] = (0 != stoi(data[22]));
       filme.categorias[18] = (0 != stoi(data[23]));
+
+      // cout << filme.id << ": ";
+      // cout << filme.categorias[1] << " ";
+      // cout << filme.categorias[2] << " ";
+      // cout << filme.categorias[3] << " ";
+      // cout << filme.categorias[4] << " ";
+      // cout << filme.categorias[5] << " ";
+      // cout << filme.categorias[6] << " ";
+      // cout << filme.categorias[7] << " ";
+      // cout << filme.categorias[8] << " ";
+      // cout << filme.categorias[9] << " ";
+      // cout << filme.categorias[10] << " ";
+      // cout << filme.categorias[11] << " ";
+      // cout << filme.categorias[12] << " ";
+      // cout << filme.categorias[13] << " ";
+      // cout << filme.categorias[14] << " ";
+      // cout << filme.categorias[15] << " ";
+      // cout << filme.categorias[16] << " ";
+      // cout << filme.categorias[17] << " ";
+      // cout << filme.categorias[18] << endl;
+
       filmes.push_back(filme);
+      contador++;
     }
     myfile.close();
   } else {
@@ -76,16 +101,18 @@ bool temVizinho(Filme filme, int indiceDoVizinho) {
   return false;
 }
 
-void setNeighbours(vector<Filme> filmes) {
+void setNeighbours() {
   for (int indice = 0; indice < filmes.size(); indice++ ) {
-    for (int indice2 = 1; indice2 < filmes.size(); indice2++ ) {
+    for (int indice2 = 0; indice2 < filmes.size(); indice2++ ) {
+
+      Filme filme = filmes[indice];
+      Filme filme2 = filmes[indice2];
+
+      if (indice == indice2) continue;
+      if (temVizinho(filme, indice2)) continue;
+
       for (int indCategoria = 0; indCategoria < QT_FILME; indCategoria++) {
-        Filme filme = filmes[indice];
-        Filme filme2 = filmes[indice2];
-
-        if (temVizinho(filme, indice2)) continue;
-
-        if (filme.categorias[indCategoria] == filme2.categorias[indCategoria]) {
+        if (filme.categorias[indCategoria] && filme2.categorias[indCategoria]) {
           filme.vizinhos.push_back(indice2);
           filme2.vizinhos.push_back(indice);
           filmes[indice] = filme;
@@ -104,22 +131,35 @@ double simrank (int index, int index2) {
   int qtVizinhos = filme.vizinhos.size();
   int qtVizinhos2 = filme2.vizinhos.size();
 
-  double total = 0;
-  int similarity;
+  double total = 0.0;
+  double similarity;
+
+  if (index == index2) return 1;
 
   for (int indice = 0; indice < qtVizinhos; indice++) {
     for (int indice2 = 0; indice2 < qtVizinhos2; indice2++) {
-      total += simrank(filme.vizinhos[indice], filme2.vizinhos[indice2]);
+      total += matriz[filme.vizinhos[indice]][filme2.vizinhos[indice2]];
     }
   }
 
-  similarity = total * (C / (qtVizinhos * qtVizinhos2));
+  double factor = C / (qtVizinhos * qtVizinhos2);
+  similarity = total * factor;
   matriz[index][index2] = similarity;
+
+  // cout << endl;
+  // cout << fixed << total << endl;
+  // cout << factor << endl;
+  // cout << fixed << similarity << endl;
+  // cout << fixed << qtVizinhos << endl;
+  // cout << fixed << qtVizinhos2 << endl;
+  // cout << endl;
+
   return total;
 }
 
 int main() {
-  const int K = 5;
+  const int K = 4;
+  cout.precision(2);
   clock_t begin;
   clock_t end;
   double elapsedSecs;
@@ -134,7 +174,17 @@ int main() {
     matriz[indice][indice] = 1;
   }
 
-  setNeighbours(filmes);
+  setNeighbours();
+
+  // assert(filmes[0].vizinhos.size() == 2);
+  // cout << filmes[0].vizinhos[0] << endl;
+  // cout << filmes[0].vizinhos[1] << endl;
+  // assert(filmes[0].vizinhos[0] == 8);
+  // assert(filmes[0].vizinhos[1] == 4);
+  // assert(filmes[1].vizinhos.size() == 3);
+  // assert(filmes[2].vizinhos.size() == 2);
+  // assert(filmes[3].vizinhos.size() == 8);
+  // assert(filmes[4].vizinhos.size() == 8);
 
   for (int contador = 0; contador < K; contador++) {
     for (int indice = 0; indice < filmes.size(); indice++) {
@@ -147,7 +197,7 @@ int main() {
 
   for (int index = 0; index < filmes.size(); index++) {
     for (int index2 = 0; index2 < filmes.size(); index2++) {
-      cout << matriz[index][index2] << ",";
+      cout << fixed << matriz[index][index2] << ",";
     }
     cout << endl;
   }
