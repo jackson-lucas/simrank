@@ -1,6 +1,7 @@
 #include <ctime>
 #include <iostream>
 #include <stdlib.h>
+#include <math.h>
 #include <vector>
 #include "Filme.h"
 #include <string>
@@ -36,7 +37,7 @@ vector<Filme> filmes;
 void readFile(string path) {
   ifstream myfile (path);
   string line;
-  int limite = 500;
+  int limite = 100;
   int contador = 0;
 
   if (myfile.is_open()) {
@@ -124,7 +125,7 @@ void setNeighbours() {
   }
 }
 
-double simrank (int index, int index2) {
+void simrank (int index, int index2) {
   Filme filme = filmes[index];
   Filme filme2 = filmes[index2];
 
@@ -134,17 +135,26 @@ double simrank (int index, int index2) {
   double total = 0.0;
   double similarity;
 
-  if (index == index2) return 1;
+  if (index == index2) return;
 
   for (int indice = 0; indice < qtVizinhos; indice++) {
     for (int indice2 = 0; indice2 < qtVizinhos2; indice2++) {
-      total += matriz[filme.vizinhos[indice]][filme2.vizinhos[indice2]];
+      double valor = matriz[filme.vizinhos[indice]][filme2.vizinhos[indice2]];
+      if (isnan(valor)) valor = 0;
+      total += valor;
     }
   }
 
   double factor = C / (qtVizinhos * qtVizinhos2);
   similarity = total * factor;
-  matriz[index][index2] = similarity;
+
+  if (isnan(similarity)) {
+    matriz[index][index2] = 0;
+    matriz[index2][index] = 0;
+  } else {
+    matriz[index][index2] = similarity;
+    matriz[index2][index] = similarity;
+  }
 
   // cout << endl;
   // cout << fixed << total << endl;
@@ -153,8 +163,6 @@ double simrank (int index, int index2) {
   // cout << fixed << qtVizinhos << endl;
   // cout << fixed << qtVizinhos2 << endl;
   // cout << endl;
-
-  return total;
 }
 
 int main() {
